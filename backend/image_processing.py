@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from langchain_openai import AzureChatOpenAI
 from langchain.schema import HumanMessage, SystemMessage
 from pdf2image import convert_from_bytes
+import json
 
 load_dotenv()
 
@@ -27,7 +28,20 @@ def create_vision_message(base64_img, prompt="Leggi l'immagine e scrivi il testo
         )
     ]
 
-def process_file(files):
+def process_file(files, mock=False):
+
+    if mock:
+        print("Mocked response")
+        return """PROGRAMTAZIONE AD OGGETTI E un paradigma di programmazione basato sulla concezzione di oggetti ene rappresentano entitá
+                reali o astratte.
+                Si basa su 4 pilastri fondamentali:
+                • ASTRAZIONE: processo di semplificazione della complessità nascondendo dettagli non necessar e mostrando soo le caratteristiche essensioli.
+                • EREDITARIETÀ: possibilitá di ereare elassi (derivate e sottoclassi) a partire da classi esistenti (classe base o derivate). Promuove il riutilizzo del codice.
+                • POLIMORFISMO: Possibilitá di una funzione di assumere diverse forme. Esiste di due tipi diversi:
+                • A COMPILE - TIME O STATICO
+                O OVERLOADING: Possibilità di creare nella stessa classe lo stesso metodo con farametri diversi.
+                • POLIMORFISMO A RUN-TIME O DINAMICO o OVERRIDE: una superclasse detinisce"""
+
     llm = AzureChatOpenAI(
                     azure_deployment="gpt-4.1",
                     openai_api_version="2024-12-01-preview",
@@ -64,15 +78,35 @@ def process_file(files):
 
 def create_quiz_from_text(text):
     llm = AzureChatOpenAI(
-                    azure_deployment="gpt-4.1",
-                    openai_api_version="2024-12-01-preview",
-                    temperature=0,
-                    max_retries=2
-                )
+        azure_deployment="gpt-4.1",
+        openai_api_version="2024-12-01-preview",
+        temperature=0,
+        max_retries=2
+    )
     
     messages = [
-        SystemMessage(content="Sei un assistente che crea quiz a scelta multipla da testi."),
-        HumanMessage(content=f"Genera un quiz con 5 domande a scelta multipla basato su questo testo:\n\n{text}")
+        SystemMessage(content="Sei un assistente che crea quiz da testi. Genera un quiz con 5 domande nel seguente formato JSON. "
+                              "Per ogni domanda a risposta multipla, includi anche il campo 'answer' con il testo della risposta corretta. "
+                              "Il formato deve essere:\n\n"
+                              "[\n"
+                              "  {\n"
+                              "    \"question\": \"Testo della domanda\",\n"
+                              "    \"type\": \"multiple\",\n"
+                              "    \"options\": [\"opzione A\", \"opzione B\", \"opzione C\"],\n"
+                              "    \"answer\": \"opzione corretta\"\n"
+                              "  },\n"
+                              "  {\n"
+                              "    \"question\": \"Testo della domanda aperta\",\n"
+                              "    \"type\": \"text\"\n"
+                              "  }\n"
+                              "]"),
+        HumanMessage(content=f"Genera il quiz basato su questo testo:\n\n{text}")
     ]
 
-    return llm.invoke(messages).content
+    response = llm.invoke(messages).content
+
+    try:
+        quiz_data = json.loads(response)
+        return quiz_data
+    except json.JSONDecodeError:
+        return [{"question": "Errore nel parsing della risposta del modello.", "type": "text"}]

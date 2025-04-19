@@ -61,6 +61,39 @@
       background-color: #0e8f70;
     }
 
+    .quiz-container {
+      background-color: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 1rem;
+      max-width: 800px;
+      width: 100%;
+      margin-top: 2rem;
+      color: #d0d0d0;
+    }
+
+    .quiz-question {
+      margin-bottom: 1.5rem;
+    }
+
+    .quiz-question h3 {
+      margin-bottom: 0.5rem;
+    }
+
+    .quiz-option {
+      display: block;
+      margin: 4px 0;
+    }
+
+    textarea {
+      background-color: #2c2c2c;
+      color: #fff;
+      border: 1px solid #444;
+      border-radius: 6px;
+      padding: 0.5rem;
+      resize: vertical;
+    }
+
     pre {
       background-color: #1e1e1e;
       border: 1px solid #333;
@@ -96,15 +129,17 @@
     <input type="file" name="files" accept=".pdf,image/*" multiple required>
     <button type="submit">Start quizzing</button>
   </form>
-  <pre id="result">I tuoi quiz appariranno qui...</pre>
+  <div id="result" class="quiz-container">I tuoi quiz appariranno qui...</div>
+  <button id="validateBtn" style="margin-top: 1rem; display: none;">Valida risposte</button>
 
   <script>
     const form = document.getElementById("uploadForm");
     const resultBox = document.getElementById("result");
+    const validateBtn = document.getElementById("validateBtn");
 
     form.onsubmit = async (e) => {
       e.preventDefault();
-      resultBox.textContent = "Analisi in corso... ⏳";
+      resultBox.innerHTML = "<em>Analisi in corso... ⏳</em>";
 
       const formData = new FormData(form);
       const res = await fetch("/process", {
@@ -112,12 +147,137 @@
         body: formData
       });
 
-      if (res.ok) {
-        const data = await res.text();
-        resultBox.textContent = data;
-      } else {
-        resultBox.textContent = "❌ Errore durante l'elaborazione.";
+      if (!res.ok) {
+        resultBox.innerHTML = "❌ Errore durante l'elaborazione.";
+        return;
       }
+
+      const quizData = await res.json();
+      renderQuiz(quizData);
+    };
+
+    function renderQuiz(data) {
+      resultBox.innerHTML = "";
+      data.forEach((item, index) => {
+        const container = document.createElement("div");
+        container.className = "quiz-question";
+
+        // memorizza la risposta corretta
+        if (item.type === "multiple" && item.answer) {
+        container.dataset.answer = item.answer;
+        }
+
+        const title = document.createElement("h3");
+        title.textContent = `${index + 1}. ${item.question}`;
+        container.appendChild(title);
+
+        if (item.type === "multiple") {
+          item.options.forEach((opt, i) => {
+            const label = document.createElement("label");
+            label.className = "quiz-option";
+
+            const input = document.createElement("input");
+            input.type = "radio";
+            input.name = `question-${index}`;
+            input.value = opt;
+
+            label.appendChild(input);
+            label.append(` ${opt}`);
+            container.appendChild(label);
+          });
+        } else if (item.type === "text") {
+          const input = document.createElement("textarea");
+          input.name = `question-${index}`;
+          input.rows = 3;
+          input.style.width = "100%";
+          container.appendChild(input);
+        }
+
+        resultBox.appendChild(container);
+      });
+      validateBtn.style.display = "inline-block";
+    }
+
+    validateBtn.onclick = async () => {
+      validateBtn.disabled = true;
+      validateBtn.textContent = "Validazione in corso...";
+
+      const questions = [];
+      const answers = [];
+
+      document.querySelectorAll(".quiz-question").forEach((questionEl, index) => {
+        // Rimuove eventuale feedback precedente
+        const oldFeedback = questionEl.querySelector(".quiz-feedback");
+        if (oldFeedback) oldFeedback.remove();
+
+        const qText = questionEl.querySelector("h3").textContent.replace(/^\d+\.\s*/, "");
+        const type = questionEl.querySelector("textarea") ? "text" : "multiple";
+
+        let userAnswer = "";
+        if (type === "multiple") {
+          const checked = questionEl.querySelector("input[type=radio]:checked");
+          if (checked) userAnswer = checked.value;
+        } else {
+          const input = questionEl.querySelector("textarea");
+          if (input) userAnswer = input.value.trim();
+        }
+
+        const qData = {
+          question: qText,
+          type: type,
+        };
+        if (type === "multiple") {
+          qData.options = Array.from(questionEl.querySelectorAll("input[type=radio]")).map(r => r.value);
+          qData.answer = questionEl.dataset.answer;
+        }
+
+        questions.push(qData);
+        answers.push(userAnswer);
+      });
+
+      const res = await fetch("/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questions, answers })
+      });
+
+      const data = await res.json();
+      if (!data.feedback) {
+        validateBtn.disabled = false;
+        validateBtn.textContent = "Valida risposte";
+        return;
+      }
+
+      const feedbackList = Array.isArray(data.feedback) ? data.feedback : JSON.parse(data.feedback);
+
+      document.querySelectorAll(".quiz-question").forEach((questionEl, i) => {
+        const fb = feedbackList[i];
+        if (!fb) return;
+
+        // Colora
+        const isCorrect = fb.correct;
+        questionEl.style.border = "1px solid transparent";
+        questionEl.style.borderRadius = "10px";
+        questionEl.style.padding = "1rem";
+        questionEl.style.backgroundColor = isCorrect ? "rgba(0, 200, 83, 0.08)" : "rgba(213, 0, 0, 0.08)";
+
+        // Aggiungi feedback
+        const fbElem = document.createElement("div");
+        fbElem.className = "quiz-feedback";
+        fbElem.textContent = `💬 ${fb.feedback}`;
+        fbElem.style.marginTop = "0.75rem";
+        fbElem.style.padding = "0.75rem";
+        fbElem.style.borderRadius = "6px";
+        fbElem.style.backgroundColor = isCorrect ? "#1b5e20" : "#5c0000";
+        fbElem.style.color = "#e0f2f1";
+        fbElem.style.fontSize = "0.95rem";
+        fbElem.style.fontStyle = "italic";
+
+        questionEl.appendChild(fbElem);
+      });
+
+      validateBtn.disabled = false;
+      validateBtn.textContent = "Valida risposte";
     };
   </script>
 </body>
