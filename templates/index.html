@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quizzify</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121212;
+      color: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #ffffff;
+    }
+
+    form {
+      background-color: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1rem;
+    }
+
+    input[type="file"] {
+      background-color: #2c2c2c;
+      border: 1px solid #444;
+      padding: 0.75rem;
+      border-radius: 8px;
+      color: #ddd;
+    }
+
+    button {
+      padding: 0.75rem;
+      background-color: #10a37f;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0e8f70;
+    }
+
+    pre {
+      background-color: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 1rem;
+      max-width: 800px;
+      width: 100%;
+      margin-top: 2rem;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      color: #d0d0d0;
+      overflow: auto;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem;
+      }
+
+      form {
+        padding: 1rem;
+      }
+
+      pre {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Quizzify</h1>
+  <form id="uploadForm" enctype="multipart/form-data">
+    <input type="file" name="files" accept=".pdf,image/*" multiple required>
+    <button type="submit">Start quizzing</button>
+  </form>
+  <pre id="result">I tuoi quiz appariranno qui...</pre>
+
+  <script>
+    const form = document.getElementById("uploadForm");
+    const resultBox = document.getElementById("result");
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      resultBox.textContent = "Analisi in corso... ⏳";
+
+      const formData = new FormData(form);
+      const res = await fetch("/process", {
+        method: "POST",
+        body: formData
+      });
+
+      if (res.ok) {
+        const data = await res.text();
+        resultBox.textContent = data;
+      } else {
+        resultBox.textContent = "❌ Errore durante l'elaborazione.";
+      }
+    };
+  </script>
+</body>
+</html>
