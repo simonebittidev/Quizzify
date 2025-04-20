@@ -4,23 +4,53 @@ from flask import render_template
 from langchain_openai import AzureChatOpenAI
 from langchain.schema import SystemMessage, HumanMessage
 import os
+import requests
+from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
 @app.route("/", methods=["GET"])
 def index():
-    print("ciao")
     return render_template("index.html")
 
 @app.route("/process", methods=["POST"])
 def process_files():
-    mock = True
+    mock = False
+    full_text = ""
 
-    if "files" not in request.files:
-        return jsonify({"error": "Nessun file inviato."}), 400
+    # Se c'è un URL nel form, estrai il testo da quella pagina
+    if "url" in request.form:
+        url = request.form["url"]
 
-    files = request.files.getlist("files")
-    full_text = process_file(files, mock)
+        if url:
+            print(f"url:{ url}")
+            try:
+                if "wikipedia" in url:
+                    res = requests.get(url)
+                    soup = BeautifulSoup(res.text, "html.parser")
+
+                    # Seleziona il contenuto principale
+                    main_content = soup.select_one("div.mw-parser-output")
+                    full_text = main_content.get_text(separator="\n", strip=True)
+                else:
+                    res = requests.get(url)
+                    soup = BeautifulSoup(res.text, "html.parser")
+
+                    # Seleziona il contenuto principale
+                    main_content = soup.select_one("div.mw-parser-output")
+                    full_text = main_content.get_text(separator="\n", strip=True)
+            except Exception as e:
+                return jsonify({"error": f"Errore durante il recupero del sito: {str(e)}"}), 500
+    
+    print("urlText:", full_text)
+
+    # Se ci sono file, processali
+    if "files" in request.files:
+        files = request.files.getlist("files")
+        full_text += process_file(files, mock) 
+
+    if not full_text.strip():
+        return jsonify({"error": "Nessun contenuto da processare."}), 400
 
     try:
         quiz_data = create_quiz_from_text(full_text)
@@ -41,7 +71,22 @@ def validate_quiz():
     except Exception as e:
         return jsonify({"error": f"Errore durante la valutazione: {str(e)}"}), 500
 
-def validate_answers(questions, answers):
+def validate_answers(questions, answers, validateWithLLM=False):
+    if not validateWithLLM:
+        feedback = []
+        for i, q in enumerate(questions):
+            correct_answer = q.get("answer", "").strip().lower()
+            user_answer = answers[i].strip().lower()
+            is_correct = user_answer == correct_answer
+            feedback.append({
+                "question": q.get("question", ""),
+                "user_answer": answers[i],
+                "correct_answer": q.get("answer", ""),
+                "correct": is_correct,
+                "feedback": "Corretto!" if is_correct else "Risposta errata."
+            })
+        return feedback
+
     llm = AzureChatOpenAI(
         azure_deployment="gpt-4.1",
         openai_api_version="2024-12-01-preview",

@@ -32,7 +32,7 @@ def process_file(files, mock=False):
 
     if mock:
         print("Mocked response")
-        return """PROGRAMTAZIONE AD OGGETTI E un paradigma di programmazione basato sulla concezzione di oggetti ene rappresentano entitá
+        return """PROGRAMMAZIONE AD OGGETTI E un paradigma di programmazione basato sulla concezzione di oggetti ene rappresentano entitá
                 reali o astratte.
                 Si basa su 4 pilastri fondamentali:
                 • ASTRAZIONE: processo di semplificazione della complessità nascondendo dettagli non necessar e mostrando soo le caratteristiche essensioli.
@@ -85,7 +85,23 @@ def create_quiz_from_text(text):
     )
     
     messages = [
-        SystemMessage(content="Sei un assistente che crea quiz da testi. Genera un quiz con 5 domande nel seguente formato JSON. "
+        # SystemMessage(content="Sei un assistente che crea quiz da testi. Genera un quiz da 5 a 15 domande nel seguente formato JSON. "
+        #                       "Per ogni domanda a risposta multipla, includi anche il campo 'answer' con il testo della risposta corretta. "
+        #                       "Il formato deve essere:\n\n"
+        #                       "[\n"
+        #                       "  {\n"
+        #                       "    \"question\": \"Testo della domanda\",\n"
+        #                       "    \"type\": \"multiple\",\n"
+        #                       "    \"options\": [\"opzione A\", \"opzione B\", \"opzione C\"],\n"
+        #                       "    \"answer\": \"opzione corretta\"\n"
+        #                       "  },\n"
+        #                       "  {\n"
+        #                       "    \"question\": \"Testo della domanda aperta\",\n"
+        #                       "    \"type\": \"text\"\n"
+        #                       "  }\n"
+        #                       "]"),
+
+        SystemMessage(content="Sei un assistente che crea quiz da testi. Genera un quiz da 5 a 15 domande nel seguente formato JSON. "
                               "Per ogni domanda a risposta multipla, includi anche il campo 'answer' con il testo della risposta corretta. "
                               "Il formato deve essere:\n\n"
                               "[\n"
@@ -95,10 +111,6 @@ def create_quiz_from_text(text):
                               "    \"options\": [\"opzione A\", \"opzione B\", \"opzione C\"],\n"
                               "    \"answer\": \"opzione corretta\"\n"
                               "  },\n"
-                              "  {\n"
-                              "    \"question\": \"Testo della domanda aperta\",\n"
-                              "    \"type\": \"text\"\n"
-                              "  }\n"
                               "]"),
         HumanMessage(content=f"Genera il quiz basato su questo testo:\n\n{text}")
     ]

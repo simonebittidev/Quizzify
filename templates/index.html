@@ -46,6 +46,14 @@
       color: #ddd;
     }
 
+    input[type="text"] {
+      background-color: #2c2c2c;
+      border: 1px solid #444;
+      padding: 0.75rem;
+      border-radius: 8px;
+      color: #ddd;
+    }
+
     button {
       padding: 0.75rem;
       background-color: #10a37f;
@@ -121,27 +129,69 @@
         font-size: 0.9rem;
       }
     }
+
+    #scoreBanner.success {
+      background-color: rgba(0, 200, 83, 0.2);
+      color: #00e676;
+      border: 1px solid #00e676;
+    }
+
+    #scoreBanner.error {
+      background-color: rgba(213, 0, 0, 0.2);
+      color: #ff5252;
+      border: 1px solid #ff5252;
+    }
+
+    p {
+        font-size: 0.8rem;
+        align-self: center;
+        margin: 0;
+    }
   </style>
 </head>
 <body>
   <h1>Quizzify</h1>
   <form id="uploadForm" enctype="multipart/form-data">
-    <input type="file" name="files" accept=".pdf,image/*" multiple required>
+    <input type="text" name="url" id="urlInput" placeholder="Inserisci un link a una pagina web (es: https://it.wikipedia.org/wiki/Programmazione_orientata_agli_oggetti)">
+    <p>oppure</p>
+    <input type="file" name="files" accept=".pdf,image/*" multiple placeholder="Carica un file PDF o immagini">
     <button type="submit">Start quizzing</button>
   </form>
   <div id="result" class="quiz-container">I tuoi quiz appariranno qui...</div>
   <button id="validateBtn" style="margin-top: 1rem; display: none;">Valida risposte</button>
+  <div id="scoreBanner" style="display:none; margin-top: 1rem; padding: 1rem; border-radius: 8px; font-weight: bold; text-align: center;"></div>
 
   <script>
     const form = document.getElementById("uploadForm");
     const resultBox = document.getElementById("result");
     const validateBtn = document.getElementById("validateBtn");
+    const urlInputField = document.getElementById("urlInput");
+    const fileInputField = document.querySelector('input[type="file"]');
+    const submitButton = form.querySelector('button[type="submit"]');
+    
+    function toggleSubmitButton() {
+      const hasURL = urlInputField.value.trim().length > 0;
+      const hasFiles = fileInputField.files.length > 0;
+      submitButton.disabled = !(hasURL || hasFiles);
+    }
+    
+    // Inizializza lo stato del bottone
+    toggleSubmitButton();
+    
+    // Aggiungi event listeners
+    urlInputField.addEventListener("input", toggleSubmitButton);
+    fileInputField.addEventListener("change", toggleSubmitButton);
 
     form.onsubmit = async (e) => {
       e.preventDefault();
       resultBox.innerHTML = "<em>Analisi in corso... ⏳</em>";
 
       const formData = new FormData(form);
+      const urlInput = document.getElementById("urlInput").value.trim();
+      if (urlInput) {
+        formData.append("url", urlInput);
+      }
+
       const res = await fetch("/process", {
         method: "POST",
         body: formData
@@ -275,6 +325,17 @@
 
         questionEl.appendChild(fbElem);
       });
+
+      // Calcola e mostra punteggio
+      const correctCount = feedbackList.filter(f => f.correct).length;
+
+      const total = feedbackList.length;
+      const percent = Math.round((correctCount / total) * 100);
+
+      const banner = document.getElementById("scoreBanner");
+      banner.style.display = "block";
+      banner.className = percent >= 50 ? "success" : "error";
+      banner.textContent = `✅ Hai risposto correttamente a ${correctCount} su ${total} domande (${percent}%).`;
 
       validateBtn.disabled = false;
       validateBtn.textContent = "Valida risposte";

@@ -6,3 +6,4 @@ langgraph
 pdf2image
 pillow
 flask
+bs4
