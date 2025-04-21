@@ -101,7 +101,7 @@ def create_quiz_from_text(text):
         #                       "  }\n"
         #                       "]"),
 
-        SystemMessage(content="Sei un assistente che crea quiz da testi. Genera un quiz da 5 a 15 domande nel seguente formato JSON. "
+        SystemMessage(content="Sei un assistente che crea quiz da testi. Genera un quiz di 5-10 domande, a seconda della lunghezza del testo fornito, nel seguente formato JSON. "
                               "Per ogni domanda a risposta multipla, includi anche il campo 'answer' con il testo della risposta corretta. "
                               "Il formato deve essere:\n\n"
                               "[\n"

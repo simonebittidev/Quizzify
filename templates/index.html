@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Quizzify</title>
+  <title>Quizzify.Me</title>
   <style>
     body {
       margin: 0;
@@ -150,15 +150,15 @@
   </style>
 </head>
 <body>
-  <h1>Quizzify</h1>
+  <h1>Quizzify.Me</h1>
   <form id="uploadForm" enctype="multipart/form-data">
-    <input type="text" name="url" id="urlInput" placeholder="Inserisci un link a una pagina web (es: https://it.wikipedia.org/wiki/Programmazione_orientata_agli_oggetti)">
-    <p>oppure</p>
-    <input type="file" name="files" accept=".pdf,image/*" multiple placeholder="Carica un file PDF o immagini">
-    <button type="submit">Start quizzing</button>
+    <input type="text" name="url" id="urlInput" placeholder="Enter a web page URL (e.g., https://en.wikipedia.org/wiki/Object-oriented_programming)">
+    <p>or</p>
+    <input type="file" name="files" accept=".pdf,image/*" multiple placeholder="Upload a PDF or image file">
+    <button type="submit">Start Quiz</button>
   </form>
-  <div id="result" class="quiz-container">I tuoi quiz appariranno qui...</div>
-  <button id="validateBtn" style="margin-top: 1rem; display: none;">Valida risposte</button>
+  <div id="result" class="quiz-container">Your quizzes will appear here...</div>
+  <button id="validateBtn" style="margin-top: 1rem; display: none;">Validate Answers</button>
   <div id="scoreBanner" style="display:none; margin-top: 1rem; padding: 1rem; border-radius: 8px; font-weight: bold; text-align: center;"></div>
 
   <script>
@@ -198,6 +198,48 @@
       });
 
       if (!res.ok) {
+        if (res.status === 403) {
+          const error = await res.json();
+          const banner = document.createElement("div");
+          banner.style.backgroundColor = "#333";
+          banner.style.border = "1px solid #555";
+          banner.style.padding = "1.25rem";
+          banner.style.borderRadius = "8px";
+          banner.style.marginTop = "1rem";
+          banner.style.color = "#ffb74d";
+          banner.style.fontWeight = "500";
+          banner.style.textAlign = "center";
+          banner.style.maxWidth = "600px";
+          banner.style.margin = "2rem auto";
+          banner.innerHTML = `
+    ⚠️ <strong>Daily quiz limit reached.</strong><br>
+    We're working to improve this limit soon. Please come back tomorrow!
+  `;
+          resultBox.innerHTML = "";
+          resultBox.appendChild(banner);
+          return;
+        }
+        if (res.status === 413) {
+          const error = await res.json();
+          const banner = document.createElement("div");
+          banner.style.backgroundColor = "#333";
+          banner.style.border = "1px solid #ff7043";
+          banner.style.padding = "1.25rem";
+          banner.style.borderRadius = "8px";
+          banner.style.marginTop = "1rem";
+          banner.style.color = "#ffab91";
+          banner.style.fontWeight = "500";
+          banner.style.textAlign = "center";
+          banner.style.maxWidth = "600px";
+          banner.style.margin = "2rem auto";
+          banner.innerHTML = `
+    ⚠️ <strong>File size too large.</strong><br>
+    Please upload less than 5MB total to allow proper quiz generation.
+  `;
+          resultBox.innerHTML = "";
+          resultBox.appendChild(banner);
+          return;
+        }
         resultBox.innerHTML = "❌ Errore durante l'elaborazione.";
         return;
       }
@@ -335,7 +377,7 @@
       const banner = document.getElementById("scoreBanner");
       banner.style.display = "block";
       banner.className = percent >= 50 ? "success" : "error";
-      banner.textContent = `✅ Hai risposto correttamente a ${correctCount} su ${total} domande (${percent}%).`;
+      banner.textContent = `✅ You answered correctly ${correctCount} out of ${total} questions (${percent}%).`;
 
       validateBtn.disabled = false;
       validateBtn.textContent = "Valida risposte";

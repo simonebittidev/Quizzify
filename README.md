@@ -9,8 +9,6 @@ Quizzify è un'app web moderna che sfrutta la potenza di **GPT-4.1 (Azure OpenAI
 - 💬 Rispondere a contenuti complessi con un solo click
 
 <img width="1011" alt="Screenshot 2025-04-20 alle 00 51 23" src="https://github.com/user-attachments/assets/cba64577-9d2b-4b11-87ad-bc9fb097a008" />
-  
-
 ---
 
 ## ✨ Funzionalità principali
