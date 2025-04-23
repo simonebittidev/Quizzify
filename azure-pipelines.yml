@@ -78,13 +78,9 @@ stages:
               versionSpec: '$(pythonVersion)'
             displayName: 'Use Python version'
 
-          - task: AzureRmWebAppDeployment@5
+          - task: AzureWebApp@1
+            displayName: 'Deploy Azure Web App : quizzify-me'
             inputs:
-              ConnectionType: 'AzureRM'
-              azureSubscription: 'Simone - Visual Studio Enterprise Subscription(a5d7e417-ace2-4649-afba-22fa8bbdc770)'
-              appType: 'webAppLinux'
-              WebAppName: 'quizzify-me'
-              packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
-              RuntimeStack: 'PYTHON|3.9'
-              StartupCommand: 'gunicorn --bind=0.0.0.0 --workers=4 app:app'
-              DeploymentTypeLinux: 'oneDeploy'
+              azureSubscription: $(azureServiceConnectionId)
+              appName: $(webAppName)
+              package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
