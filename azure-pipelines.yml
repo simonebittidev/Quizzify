@@ -8,7 +8,7 @@ trigger:
 
 variables:
   # Azure Resource Manager connection created during pipeline creation
-  azureServiceConnectionId: 'f4a6089e-0f31-4818-a5e5-7851dc1bb263'
+  azureServiceConnectionId: 'f6d060a3-6103-45b8-bf28-f590754e524a'
 
   # Web app name
   webAppName: 'quizzifyme'
