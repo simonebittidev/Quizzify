@@ -11,13 +11,13 @@ variables:
   azureServiceConnectionId: 'f4a6089e-0f31-4818-a5e5-7851dc1bb263'
 
   # Web app name
-  webAppName: 'quizzify-me'
+  webAppName: 'quizzifyme'
 
   # Agent VM image name
   vmImageName: 'ubuntu-latest'
 
   # Environment name
-  environmentName: 'quizzify-me'
+  environmentName: 'quizzifyme'
 
   # Project root folder. Point to the folder containing manage.py file.
   projectRoot: $(System.DefaultWorkingDirectory)
@@ -79,7 +79,7 @@ stages:
             displayName: 'Use Python version'
 
           - task: AzureWebApp@1
-            displayName: 'Deploy Azure Web App : quizzify-me'
+            displayName: 'Deploy Azure Web App : quizzifyme'
             inputs:
               azureSubscription: $(azureServiceConnectionId)
               appName: $(webAppName)
