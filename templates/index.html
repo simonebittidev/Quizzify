@@ -1,417 +1,65 @@
 <!DOCTYPE html>
 <html lang="it">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Quizzify.Me</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #121212;
-      color: #e0e0e0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      padding: 2rem;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quizzify.Me</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.css" />
+  </head>
+  <body class="min-h-screen bg-gradient-to-br from-indigo-900 via-indigo-800 to-indigo-900 text-white flex flex-col items-center px-4 py-12">
+    <header class="w-full flex justify-between items-center mb-12 px-6 max-w-6xl">
+      <h1 class="text-5xl font-extrabold tracking-tight drop-shadow-lg">Quizzify.Me</h1>
+      <div class="relative">
+        <button id="loginToggle" class="bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2 px-5 rounded-full shadow-lg transition-all duration-300">Login</button>
+        <div id="firebaseui-auth-container" class="hidden absolute right-0 mt-3 w-96 bg-white text-black border border-zinc-300 rounded-xl shadow-2xl p-6 z-50"></div>
+      </div>
+    </header>
 
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-      color: #ffffff;
-    }
+    <form id="uploadForm" enctype="multipart/form-data" class="bg-indigo-800/50 backdrop-blur-md border border-indigo-700 rounded-3xl shadow-2xl p-8 w-full max-w-2xl flex flex-col gap-6">
+      <label for="urlInput" class="text-sm font-medium text-indigo-200">Web Page URL</label>
+      <input type="text" id="urlInput" name="url" placeholder="https://example.com" class="bg-indigo-700/50 border border-indigo-600 rounded-lg px-4 py-3 text-white placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-cyan-500" />
+      
+      <p class="text-sm text-center text-indigo-300">— Oppure —</p>
 
-    form {
-      background-color: #1e1e1e;
-      border: 1px solid #333;
-      border-radius: 12px;
-      padding: 2rem;
-      max-width: 500px;
-      width: 100%;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 1rem;
-    }
+      <label for="fileInput" class="text-sm font-medium text-indigo-200">Carica File</label>
+      <input type="file" id="fileInput" name="files" multiple accept=".pdf,image/*" class="bg-indigo-700/50 border border-indigo-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500" />
 
-    input[type="file"] {
-      background-color: #2c2c2c;
-      border: 1px solid #444;
-      padding: 0.75rem;
-      border-radius: 8px;
-      color: #ddd;
-    }
+      <button type="submit" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-6 rounded-full transition-all duration-300 shadow-md hover:shadow-xl">Avvia Quiz</button>
+    </form>
 
-    input[type="text"] {
-      background-color: #2c2c2c;
-      border: 1px solid #444;
-      padding: 0.75rem;
-      border-radius: 8px;
-      color: #ddd;
-    }
+    <div id="result" class="mt-12 w-full max-w-3xl bg-indigo-800/50 border border-indigo-700 rounded-3xl p-6 text-indigo-100 shadow-xl">
+      <p class="text-center text-indigo-300">I tuoi quiz appariranno qui...</p>
+    </div>
 
-    button {
-      padding: 0.75rem;
-      background-color: #10a37f;
-      border: none;
-      border-radius: 8px;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
+    <button id="validateBtn" class="mt-6 hidden bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-6 rounded-full transition-all duration-300 shadow-md">Valida Risposte</button>
 
-    button:hover {
-      background-color: #0e8f70;
-    }
+    <div id="scoreBanner" class="hidden mt-6 py-5 px-8 rounded-3xl font-bold text-center max-w-xl mx-auto bg-indigo-700/70 text-cyan-300 shadow-inner text-xl"></div>
 
-    .quiz-container {
-      background-color: #1e1e1e;
-      border: 1px solid #333;
-      border-radius: 8px;
-      padding: 1rem;
-      max-width: 800px;
-      width: 100%;
-      margin-top: 2rem;
-      color: #d0d0d0;
-    }
-
-    .quiz-question {
-      margin-bottom: 1.5rem;
-    }
-
-    .quiz-question h3 {
-      margin-bottom: 0.5rem;
-    }
-
-    .quiz-option {
-      display: block;
-      margin: 4px 0;
-    }
-
-    textarea {
-      background-color: #2c2c2c;
-      color: #fff;
-      border: 1px solid #444;
-      border-radius: 6px;
-      padding: 0.5rem;
-      resize: vertical;
-    }
-
-    pre {
-      background-color: #1e1e1e;
-      border: 1px solid #333;
-      border-radius: 8px;
-      padding: 1rem;
-      max-width: 800px;
-      width: 100%;
-      margin-top: 2rem;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      color: #d0d0d0;
-      overflow: auto;
-    }
-
-    @media (max-width: 600px) {
-      body {
-        padding: 1rem;
-      }
-
-      form {
-        padding: 1rem;
-      }
-
-      pre {
-        font-size: 0.9rem;
-      }
-    }
-
-    #scoreBanner.success {
-      background-color: rgba(0, 200, 83, 0.2);
-      color: #00e676;
-      border: 1px solid #00e676;
-    }
-
-    #scoreBanner.error {
-      background-color: rgba(213, 0, 0, 0.2);
-      color: #ff5252;
-      border: 1px solid #ff5252;
-    }
-
-    p {
-        font-size: 0.8rem;
-        align-self: center;
-        margin: 0;
-    }
-  </style>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.js"></script>
-  <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.css" />
-<!-- 
-  <script src="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.js"></script>
-  <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.css" /> -->
-</head>
-<body>
-  <h1>Quizzify.Me</h1>
-  <div id="firebaseui-auth-container"></div>
-  <form id="uploadForm" enctype="multipart/form-data">
-    <input type="text" name="url" id="urlInput" placeholder="Enter a web page URL (e.g., https://en.wikipedia.org/wiki/Object-oriented_programming)">
-    <p>or</p>
-    <input type="file" name="files" accept=".pdf,image/*" multiple placeholder="Upload a PDF or image file">
-    <button type="submit">Start Quiz</button>
-  </form>
-  <div id="result" class="quiz-container">Your quizzes will appear here...</div>
-  <button id="validateBtn" style="margin-top: 1rem; display: none;">Validate Answers</button>
-  <div id="scoreBanner" style="display:none; margin-top: 1rem; padding: 1rem; border-radius: 8px; font-weight: bold; text-align: center;"></div>
-
-  <script>
-    const form = document.getElementById("uploadForm");
-    const resultBox = document.getElementById("result");
-    const validateBtn = document.getElementById("validateBtn");
-    const urlInputField = document.getElementById("urlInput");
-    const fileInputField = document.querySelector('input[type="file"]');
-    const submitButton = form.querySelector('button[type="submit"]');
+    <div id="loginModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div class="bg-indigo-800 border border-indigo-600 rounded-2xl shadow-2xl max-w-md w-full p-6 text-center text-white">
+        <h2 class="text-lg font-semibold mb-2">🔒 Accesso richiesto</h2>
+        <p class="text-sm mb-4">Devi effettuare il login per poter usare <strong>Quizzify.Me</strong>.</p>
+        <button id="closeModalBtn" class="mt-2 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold px-4 py-2 rounded-md">Ok</button>
+      </div>
+    </div>
     
-    function toggleSubmitButton() {
-      const hasURL = urlInputField.value.trim().length > 0;
-      const hasFiles = fileInputField.files.length > 0;
-      submitButton.disabled = !(hasURL || hasFiles);
-    }
-    
-    // Inizializza lo stato del bottone
-    toggleSubmitButton();
-    
-    // Aggiungi event listeners
-    urlInputField.addEventListener("input", toggleSubmitButton);
-    fileInputField.addEventListener("change", toggleSubmitButton);
+    <footer class="mt-20 w-full border-t border-indigo-700 pt-8 pb-6 text-center text-indigo-300 text-sm">
+      <p>&copy; 2025 Quizzify.Me. Tutti i diritti riservati.</p>
+      <p class="mt-1">
+        Creato con <span class="text-cyan-400">♥</span> usando Tailwind CSS
+      </p>
+    </footer>
 
-    form.onsubmit = async (e) => {
-      e.preventDefault();
-      resultBox.innerHTML = "<em>Analisi in corso... ⏳</em>";
-
-      const formData = new FormData(form);
-      const urlInput = document.getElementById("urlInput").value.trim();
-      if (urlInput) {
-        formData.append("url", urlInput);
-      }
-
-      const res = await fetch("/process", {
-        method: "POST",
-        body: formData
+    <script>
+      document.getElementById('loginToggle').addEventListener('click', () => {
+        const container = document.getElementById('firebaseui-auth-container');
+        container.classList.toggle('hidden');
       });
-
-      if (!res.ok) {
-        if (res.status === 403) {
-          const error = await res.json();
-          const banner = document.createElement("div");
-          banner.style.backgroundColor = "#333";
-          banner.style.border = "1px solid #555";
-          banner.style.padding = "1.25rem";
-          banner.style.borderRadius = "8px";
-          banner.style.marginTop = "1rem";
-          banner.style.color = "#ffb74d";
-          banner.style.fontWeight = "500";
-          banner.style.textAlign = "center";
-          banner.style.maxWidth = "600px";
-          banner.style.margin = "2rem auto";
-          banner.innerHTML = `
-    ⚠️ <strong>Daily quiz limit reached.</strong><br>
-    We're working to improve this limit soon. Please come back tomorrow!
-  `;
-          resultBox.innerHTML = "";
-          resultBox.appendChild(banner);
-          return;
-        }
-        if (res.status === 413) {
-          const error = await res.json();
-          const banner = document.createElement("div");
-          banner.style.backgroundColor = "#333";
-          banner.style.border = "1px solid #ff7043";
-          banner.style.padding = "1.25rem";
-          banner.style.borderRadius = "8px";
-          banner.style.marginTop = "1rem";
-          banner.style.color = "#ffab91";
-          banner.style.fontWeight = "500";
-          banner.style.textAlign = "center";
-          banner.style.maxWidth = "600px";
-          banner.style.margin = "2rem auto";
-          banner.innerHTML = `
-    ⚠️ <strong>File size too large.</strong><br>
-    Please upload less than 5MB total to allow proper quiz generation.
-  `;
-          resultBox.innerHTML = "";
-          resultBox.appendChild(banner);
-          return;
-        }
-        resultBox.innerHTML = "❌ Errore durante l'elaborazione.";
-        return;
-      }
-
-      const quizData = await res.json();
-      renderQuiz(quizData);
-    };
-
-    function renderQuiz(data) {
-      resultBox.innerHTML = "";
-      data.forEach((item, index) => {
-        const container = document.createElement("div");
-        container.className = "quiz-question";
-
-        // memorizza la risposta corretta
-        if (item.type === "multiple" && item.answer) {
-        container.dataset.answer = item.answer;
-        }
-
-        const title = document.createElement("h3");
-        title.textContent = `${index + 1}. ${item.question}`;
-        container.appendChild(title);
-
-        if (item.type === "multiple") {
-          item.options.forEach((opt, i) => {
-            const label = document.createElement("label");
-            label.className = "quiz-option";
-
-            const input = document.createElement("input");
-            input.type = "radio";
-            input.name = `question-${index}`;
-            input.value = opt;
-
-            label.appendChild(input);
-            label.append(` ${opt}`);
-            container.appendChild(label);
-          });
-        } else if (item.type === "text") {
-          const input = document.createElement("textarea");
-          input.name = `question-${index}`;
-          input.rows = 3;
-          input.style.width = "100%";
-          container.appendChild(input);
-        }
-
-        resultBox.appendChild(container);
-      });
-      validateBtn.style.display = "inline-block";
-    }
-
-    validateBtn.onclick = async () => {
-      validateBtn.disabled = true;
-      validateBtn.textContent = "Validazione in corso...";
-
-      const questions = [];
-      const answers = [];
-
-      document.querySelectorAll(".quiz-question").forEach((questionEl, index) => {
-        // Rimuove eventuale feedback precedente
-        const oldFeedback = questionEl.querySelector(".quiz-feedback");
-        if (oldFeedback) oldFeedback.remove();
-
-        const qText = questionEl.querySelector("h3").textContent.replace(/^\d+\.\s*/, "");
-        const type = questionEl.querySelector("textarea") ? "text" : "multiple";
-
-        let userAnswer = "";
-        if (type === "multiple") {
-          const checked = questionEl.querySelector("input[type=radio]:checked");
-          if (checked) userAnswer = checked.value;
-        } else {
-          const input = questionEl.querySelector("textarea");
-          if (input) userAnswer = input.value.trim();
-        }
-
-        const qData = {
-          question: qText,
-          type: type,
-        };
-        if (type === "multiple") {
-          qData.options = Array.from(questionEl.querySelectorAll("input[type=radio]")).map(r => r.value);
-          qData.answer = questionEl.dataset.answer;
-        }
-
-        questions.push(qData);
-        answers.push(userAnswer);
-      });
-
-      const res = await fetch("/validate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ questions, answers })
-      });
-
-      const data = await res.json();
-      if (!data.feedback) {
-        validateBtn.disabled = false;
-        validateBtn.textContent = "Valida risposte";
-        return;
-      }
-
-      const feedbackList = Array.isArray(data.feedback) ? data.feedback : JSON.parse(data.feedback);
-
-      document.querySelectorAll(".quiz-question").forEach((questionEl, i) => {
-        const fb = feedbackList[i];
-        if (!fb) return;
-
-        // Colora
-        const isCorrect = fb.correct;
-        questionEl.style.border = "1px solid transparent";
-        questionEl.style.borderRadius = "10px";
-        questionEl.style.padding = "1rem";
-        questionEl.style.backgroundColor = isCorrect ? "rgba(0, 200, 83, 0.08)" : "rgba(213, 0, 0, 0.08)";
-
-        // Aggiungi feedback
-        const fbElem = document.createElement("div");
-        fbElem.className = "quiz-feedback";
-        fbElem.textContent = `💬 ${fb.feedback}`;
-        fbElem.style.marginTop = "0.75rem";
-        fbElem.style.padding = "0.75rem";
-        fbElem.style.borderRadius = "6px";
-        fbElem.style.backgroundColor = isCorrect ? "#1b5e20" : "#5c0000";
-        fbElem.style.color = "#e0f2f1";
-        fbElem.style.fontSize = "0.95rem";
-        fbElem.style.fontStyle = "italic";
-
-        questionEl.appendChild(fbElem);
-      });
-
-      // Calcola e mostra punteggio
-      const correctCount = feedbackList.filter(f => f.correct).length;
-
-      const total = feedbackList.length;
-      const percent = Math.round((correctCount / total) * 100);
-
-      const banner = document.getElementById("scoreBanner");
-      banner.style.display = "block";
-      banner.className = percent >= 50 ? "success" : "error";
-      banner.textContent = `✅ You answered correctly ${correctCount} out of ${total} questions (${percent}%).`;
-
-      validateBtn.disabled = false;
-      validateBtn.textContent = "Valida risposte";
-    };
-  </script>
-  <script>
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-    const firebaseConfig = {
-      apiKey: "AIzaSyBlZldD9uynhcoRxoYiLDzb9Ee4wCgREIU",
-      authDomain: "quizzify-f9c84.firebaseapp.com",
-      projectId: "quizzify-f9c84",
-      storageBucket: "quizzify-f9c84.firebasestorage.app",
-      messagingSenderId: "259501653186",
-      appId: "1:259501653186:web:d015a02bde160751588f5b",
-      measurementId: "G-W41MXWVFM7"
-    };
-  
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-
-    var ui = new firebaseui.auth.AuthUI(firebase.auth());
-    ui.start('#firebaseui-auth-container', {
-      signInOptions: [
-        firebase.auth.EmailAuthProvider.PROVIDER_ID
-      ],
-    });
-  </script>
-</body>
+    </script>
+    <script src="{{url_for('static', filename='script.js') }}"></script>
+  </body>
 </html>
