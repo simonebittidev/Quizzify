@@ -1,17 +1,174 @@
+// Inizializza Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyBlZldD9uynhcoRxoYiLDzb9Ee4wCgREIU",
+  authDomain: "quizzify-f9c84.firebaseapp.com",
+  projectId: "quizzify-f9c84",
+  storageBucket: "quizzify-f9c84.appspot.com",
+  messagingSenderId: "259501653186",
+  appId: "1:259501653186:web:d015a02bde160751588f5b",
+  measurementId: "G-W41MXWVFM7"
+};
+firebase.initializeApp(firebaseConfig);
+
+// --- Elementi DOM
 const form = document.getElementById("uploadForm");
 const resultBox = document.getElementById("result");
 const validateBtn = document.getElementById("validateBtn");
 const urlInputField = document.getElementById("urlInput");
-const fileInputField = document.querySelector('input[type="file"]');
-const submitButton = form.querySelector('button[type="submit"]');
 
+const loginButton = document.getElementById('loginToggle');
+const userProfile = document.getElementById('userProfile');
+const userMenuButton = document.getElementById('userMenuButton');
+const userDropdown = document.getElementById('userDropdown');
+const userAvatar = document.getElementById('userAvatar');
+const userName = document.getElementById('userName');
+const logoutButton = document.getElementById('logoutBtn');
+const changePasswordButton = document.getElementById('changePasswordBtn');
+const deleteAccountButton = document.getElementById('deleteAccountBtn');
+
+const loginModal = document.getElementById('loginModal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const loginForm = document.getElementById('loginForm');
+const resetPasswordBtn = document.getElementById('resetPasswordBtn');
+const googleLoginBtn = document.getElementById('googleLoginBtn');
+
+// --- Eventi UI
+loginButton.addEventListener('click', () => {
+  loginModal.classList.remove('hidden');
+});
+
+closeModalBtn.addEventListener('click', () => {
+  loginModal.classList.add('hidden');
+});
+
+userMenuButton.addEventListener('click', () => {
+  userDropdown.classList.toggle('hidden');
+});
+
+// Login Email/Password
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+
+  try {
+    await firebase.auth().signInWithEmailAndPassword(email, password);
+    loginModal.classList.add('hidden');
+  } catch (error) {
+    if (error.code === 'auth/user-not-found') {
+      // Se l'utente non esiste, creiamo un nuovo account
+      if (confirm('Nessun account trovato con questa email. Vuoi registrarti?')) {
+        try {
+          await firebase.auth().createUserWithEmailAndPassword(email, password);
+          alert('Registrazione completata! Ora sei loggato.');
+          loginModal.classList.add('hidden');
+        } catch (signupError) {
+          alert('Errore durante la registrazione: ' + signupError.message);
+        }
+      }
+    } else {
+      alert('Errore nel login: ' + error.message);
+    }
+  }
+});
+
+// Login con Google
+googleLoginBtn.addEventListener('click', async () => {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  try {
+    await firebase.auth().signInWithPopup(provider);
+    loginModal.classList.add('hidden');
+  } catch (error) {
+    alert('Errore con Google Login: ' + error.message);
+  }
+});
+
+// --- Reset password
+resetPasswordBtn.addEventListener('click', () => {
+  const email = prompt('Inserisci la tua email per resettare la password:');
+  if (email) {
+    firebase.auth().sendPasswordResetEmail(email)
+      .then(() => {
+        alert('Ti abbiamo inviato un' + "'email per resettare la password.");
+      })
+      .catch((error) => {
+        alert('Errore nel reset: ' + error.message);
+      });
+  }
+});
+
+// --- Logout
+logoutButton.addEventListener('click', () => {
+  firebase.auth().signOut()
+    .then(() => {
+      console.log('Utente disconnesso');
+      userDropdown.classList.add('hidden');
+    })
+    .catch((error) => {
+      alert('Errore nel logout: ' + error.message);
+    });
+});
+
+// --- Cambio password
+changePasswordButton.addEventListener('click', () => {
+  const newPassword = prompt('Inserisci la nuova password:');
+  if (newPassword) {
+    firebase.auth().currentUser.updatePassword(newPassword)
+      .then(() => {
+        alert('Password cambiata!');
+        userDropdown.classList.add('hidden');
+      })
+      .catch((error) => {
+        alert('Errore nel cambiare password: ' + error.message);
+      });
+  }
+});
+
+// --- Cancellazione account
+deleteAccountButton.addEventListener('click', () => {
+  if (confirm('Vuoi davvero eliminare il tuo account?')) {
+    firebase.auth().currentUser.delete()
+      .then(() => {
+        alert('Account eliminato.');
+        userDropdown.classList.add('hidden');
+      })
+      .catch((error) => {
+        alert('Errore nella cancellazione: ' + error.message);
+      });
+  }
+});
+
+// --- Monitoraggio stato login
+firebase.auth().onAuthStateChanged((user) => {
+  if (user) {
+    loginButton.classList.add('hidden');
+    userProfile.classList.remove('hidden');
+
+    userAvatar.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || user.email[0])}`;
+    userName.textContent = user.displayName || user.email;
+
+  } else {
+    loginButton.classList.remove('hidden');
+    userProfile.classList.add('hidden');
+    userDropdown.classList.add('hidden');
+  }
+});
+
+// --- Submit form solo se loggato
 form.onsubmit = async (e) => {
   e.preventDefault();
+
+  if (!firebase.auth().currentUser) {
+    loginModal.classList.remove('hidden');
+    return;
+  }
+
   resultBox.innerHTML = "<em class='text-indigo-200'>Analisi in corso... ⏳</em>";
 
   const formData = new FormData(form);
   const urlInput = urlInputField.value.trim();
   if (urlInput) formData.append("url", urlInput);
+  formData.append("user", firebase.auth().currentUser.uid);
 
   const res = await fetch("/process", {
     method: "POST",
@@ -21,18 +178,8 @@ form.onsubmit = async (e) => {
   if (!res.ok) {
     resultBox.innerHTML = "";
     const banner = document.createElement("div");
-    banner.className = "mt-8 p-5 rounded-2xl text-center max-w-xl mx-auto font-medium";
-
-    if (res.status === 403) {
-      banner.classList.add("bg-yellow-600/20", "text-yellow-300", "border", "border-yellow-500");
-      banner.innerHTML = `⚠️ <strong>Limite giornaliero raggiunto.</strong><br>Riprova domani!`;
-    } else if (res.status === 413) {
-      banner.classList.add("bg-orange-600/20", "text-orange-300", "border", "border-orange-500");
-      banner.innerHTML = `⚠️ <strong>File troppo grande.</strong><br>Carica file sotto i 5MB.`;
-    } else {
-      banner.classList.add("bg-red-600/20", "text-red-300", "border", "border-red-500");
-      banner.innerHTML = `❌ Errore durante l'elaborazione.`;
-    }
+    banner.className = "mt-8 p-5 rounded-2xl text-center max-w-xl mx-auto font-medium bg-red-600/20 text-red-300 border border-red-500";
+    banner.innerHTML = "❌ Errore durante l'elaborazione.";
     resultBox.appendChild(banner);
     return;
   }
@@ -41,6 +188,7 @@ form.onsubmit = async (e) => {
   renderQuiz(quizData);
 };
 
+// --- Render quiz
 function renderQuiz(data) {
   resultBox.innerHTML = "";
   data.forEach((item, index) => {
@@ -81,6 +229,7 @@ function renderQuiz(data) {
   validateBtn.classList.remove("hidden");
 }
 
+// --- Validazione quiz
 validateBtn.onclick = async () => {
   validateBtn.disabled = true;
   validateBtn.textContent = "Validazione in corso...";
@@ -91,7 +240,7 @@ validateBtn.onclick = async () => {
     const oldFeedback = questionEl.querySelector(".quiz-feedback");
     if (oldFeedback) oldFeedback.remove();
 
-    const qText = questionEl.querySelector("h3").textContent.replace(/^\\d+\\.\\s*/, "");
+    const qText = questionEl.querySelector("h3").textContent.replace(/^\d+\.\s*/, "");
     const type = questionEl.querySelector("textarea") ? "text" : "multiple";
 
     let userAnswer = "";
@@ -145,71 +294,5 @@ validateBtn.onclick = async () => {
   banner.classList.remove("hidden");
 
   validateBtn.disabled = false;
-  validateBtn.textContent = "Valida risposte";
-};
-
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyBlZldD9uynhcoRxoYiLDzb9Ee4wCgREIU",
-  authDomain: "quizzify-f9c84.firebaseapp.com",
-  projectId: "quizzify-f9c84",
-  storageBucket: "quizzify-f9c84.firebasestorage.app",
-  messagingSenderId: "259501653186",
-  appId: "1:259501653186:web:d015a02bde160751588f5b",
-  measurementId: "G-W41MXWVFM7"
-};
-
-firebase.initializeApp(firebaseConfig);
-const ui = new firebaseui.auth.AuthUI(firebase.auth());
-ui.start('#firebaseui-auth-container', {
-  signInOptions: [
-    firebase.auth.EmailAuthProvider.PROVIDER_ID,
-    firebase.auth.GoogleAuthProvider.PROVIDER_ID
-  ],
-});
-
-let currentUser = null;
-
-const userInfoBox = document.getElementById("userInfoBox");
-
-const loginModal = document.getElementById("loginModal");
-const closeModalBtn = document.getElementById("closeModalBtn");
-
-// Chiude la modale
-closeModalBtn.addEventListener("click", () => {
-  loginModal.classList.add("hidden");
-});
-
-// Blocco submit se non loggato
-form.onsubmit = async (e) => {
-  if (!firebase.auth().currentUser) {
-    e.preventDefault();
-    loginModal.classList.remove("hidden");
-    return;
-  }
-
-  e.preventDefault();
-  resultBox.innerHTML = "<em class='text-indigo-200'>Analisi in corso... ⏳</em>";
-
-  const formData = new FormData(form);
-  const urlInput = urlInputField.value.trim();
-  if (urlInput) formData.append("url", urlInput);
-
-  const res = await fetch("/process", {
-    method: "POST",
-    body: formData
-  });
-
-  if (!res.ok) {
-    resultBox.innerHTML = "";
-    const banner = document.createElement("div");
-    banner.className = "mt-8 p-5 rounded-2xl text-center max-w-xl mx-auto font-medium";
-    banner.classList.add("bg-red-600/20", "text-red-300", "border", "border-red-500");
-    banner.innerHTML = "❌ Errore durante l'elaborazione.";
-    resultBox.appendChild(banner);
-    return;
-  }
-
-  const quizData = await res.json();
-  renderQuiz(quizData);
+  validateBtn.textContent = "Valida Risposte";
 };
