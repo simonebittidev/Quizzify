@@ -10,3 +10,5 @@ flask
 bs4
 gunicorn
 firebase_admin
+google-auth
+pyasn1

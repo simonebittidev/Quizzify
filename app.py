@@ -10,9 +10,14 @@ import time
 import json
 import firebase_admin
 from firebase_admin import credentials, firestore
+from dotenv import load_dotenv
+import base64
 
-# Leggi il contenuto JSON della chiave da variabile di ambiente
-service_account_info = json.loads(os.environ['FIREBASE_SERVICE_ACCOUNT'])
+load_dotenv()
+
+print(os.environ['FIREBASE_SERVICE_ACCOUNT'])
+json_str = base64.b64decode(os.environ['FIREBASE_SERVICE_ACCOUNT']).decode('utf-8')
+service_account_info = json.loads(json_str)
 
 # Inizializza Firebase Admin
 if not firebase_admin._apps:
