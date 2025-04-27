@@ -175,11 +175,11 @@ form.onsubmit = async (e) => {
     spinner.classList.add('hidden');
 
     if (res.status === 429) {
-      resultBox.innerHTML = "⚠️ Limite di quiz giornaliero raggiunto. Torna tra 24 ore per poter generare nuovi quiz!";
+      resultBox.innerHTML = "⚠️ Daily quiz limit reached. Come back in 24 hours to generate new quizzes!";
       return;
     }
     else if (!res.ok) {
-      resultBox.innerHTML = "❌ Errore durante l'elaborazione.";
+      resultBox.innerHTML = "❌ Error during processing.";
       return;
     }
 
@@ -187,7 +187,7 @@ form.onsubmit = async (e) => {
     renderQuiz(quizData);
   } catch (error) {
     spinner.classList.add('hidden');
-    resultBox.innerHTML = "❌ Errore di connessione.";
+    resultBox.innerHTML = "❌ Error during processing.";
   }
 };
 
@@ -235,7 +235,7 @@ function renderQuiz(data) {
 // Validazione Risposte
 validateBtn.onclick = async () => {
   validateBtn.disabled = true;
-  validateBtn.textContent = "Validazione in corso...";
+  validateBtn.textContent = "Validating...";
 
   const questions = [], answers = [];
 
@@ -289,10 +289,10 @@ validateBtn.onclick = async () => {
   const percent = Math.round((correctCount / total) * 100);
 
   const banner = document.getElementById("scoreBanner");
-  banner.className = `${percent >= 50 ? "bg-green-800 text-green-300 border border-green-600" : "bg-red-800 text-red-300 border border-red-600"} mt-4 py-4 rounded-2xl font-bold text-center max-w-xl mx-auto`;
-  banner.textContent = `✅ Hai risposto correttamente a ${correctCount} su ${total} domande (${percent}%).`;
+  banner.className = `${percent >= 50 ? "bg-green-800 text-green-300 border border-green-600" : "bg-red-800 text-red-300 border border-red-600"} mt-4 py-4 px-8 rounded-2xl font-bold text-center max-w-xl mx-auto`;
+  banner.textContent = `✅ You answered correctly ${correctCount} out of ${total} questions (${percent}%).`;
   banner.classList.remove("hidden");
 
   validateBtn.disabled = false;
-  validateBtn.textContent = "Valida Risposte";
+  validateBtn.textContent = "Validate Answers";
 };
