@@ -1,20 +1,19 @@
-// Inizializza Firebase
+// Inizializzazione Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyBlZldD9uynhcoRxoYiLDzb9Ee4wCgREIU",
   authDomain: "quizzify-f9c84.firebaseapp.com",
   projectId: "quizzify-f9c84",
   storageBucket: "quizzify-f9c84.appspot.com",
   messagingSenderId: "259501653186",
-  appId: "1:259501653186:web:d015a02bde160751588f5b",
-  measurementId: "G-W41MXWVFM7"
+  appId: "1:259501653186:web:d015a02bde160751588f5b"
 };
 firebase.initializeApp(firebaseConfig);
 
-// --- Elementi DOM
+// Riferimenti agli elementi
 const form = document.getElementById("uploadForm");
 const resultBox = document.getElementById("result");
 const validateBtn = document.getElementById("validateBtn");
-const urlInputField = document.getElementById("urlInput");
+const spinner = document.getElementById("spinner");
 
 const loginButton = document.getElementById('loginToggle');
 const userProfile = document.getElementById('userProfile');
@@ -32,7 +31,7 @@ const loginForm = document.getElementById('loginForm');
 const resetPasswordBtn = document.getElementById('resetPasswordBtn');
 const googleLoginBtn = document.getElementById('googleLoginBtn');
 
-// --- Eventi UI
+// Gestione visibilità modale login
 loginButton.addEventListener('click', () => {
   loginModal.classList.remove('hidden');
 });
@@ -45,7 +44,7 @@ userMenuButton.addEventListener('click', () => {
   userDropdown.classList.toggle('hidden');
 });
 
-// Login Email/Password
+// Login Email/Password con registrazione automatica
 loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = document.getElementById('loginEmail').value.trim();
@@ -56,8 +55,7 @@ loginForm.addEventListener('submit', async (e) => {
     loginModal.classList.add('hidden');
   } catch (error) {
     if (error.code === 'auth/user-not-found') {
-      // Se l'utente non esiste, creiamo un nuovo account
-      if (confirm('Nessun account trovato con questa email. Vuoi registrarti?')) {
+      if (confirm('Nessun account trovato. Vuoi registrarti?')) {
         try {
           await firebase.auth().createUserWithEmailAndPassword(email, password);
           alert('Registrazione completata! Ora sei loggato.');
@@ -67,7 +65,7 @@ loginForm.addEventListener('submit', async (e) => {
         }
       }
     } else {
-      alert('Errore nel login: ' + error.message);
+      alert('Errore di login: ' + error.message);
     }
   }
 });
@@ -83,21 +81,21 @@ googleLoginBtn.addEventListener('click', async () => {
   }
 });
 
-// --- Reset password
+// Reset password
 resetPasswordBtn.addEventListener('click', () => {
-  const email = prompt('Inserisci la tua email per resettare la password:');
+  const email = prompt('Inserisci la tua email per ricevere il reset password:');
   if (email) {
     firebase.auth().sendPasswordResetEmail(email)
       .then(() => {
-        alert('Ti abbiamo inviato un' + "'email per resettare la password.");
+        alert('Ti abbiamo inviato un\'email per resettare la password.');
       })
       .catch((error) => {
-        alert('Errore nel reset: ' + error.message);
+        alert('Errore: ' + error.message);
       });
   }
 });
 
-// --- Logout
+// Logout
 logoutButton.addEventListener('click', () => {
   firebase.auth().signOut()
     .then(() => {
@@ -109,28 +107,26 @@ logoutButton.addEventListener('click', () => {
     });
 });
 
-// --- Cambio password
+// Cambia password
 changePasswordButton.addEventListener('click', () => {
   const newPassword = prompt('Inserisci la nuova password:');
   if (newPassword) {
     firebase.auth().currentUser.updatePassword(newPassword)
       .then(() => {
-        alert('Password cambiata!');
-        userDropdown.classList.add('hidden');
+        alert('Password aggiornata!');
       })
       .catch((error) => {
-        alert('Errore nel cambiare password: ' + error.message);
+        alert('Errore nel cambio password: ' + error.message);
       });
   }
 });
 
-// --- Cancellazione account
+// Cancellazione account
 deleteAccountButton.addEventListener('click', () => {
-  if (confirm('Vuoi davvero eliminare il tuo account?')) {
+  if (confirm('Sei sicuro di voler cancellare il tuo account?')) {
     firebase.auth().currentUser.delete()
       .then(() => {
-        alert('Account eliminato.');
-        userDropdown.classList.add('hidden');
+        alert('Account cancellato.');
       })
       .catch((error) => {
         alert('Errore nella cancellazione: ' + error.message);
@@ -138,7 +134,7 @@ deleteAccountButton.addEventListener('click', () => {
   }
 });
 
-// --- Monitoraggio stato login
+// Monitoraggio stato autenticazione
 firebase.auth().onAuthStateChanged((user) => {
   if (user) {
     loginButton.classList.add('hidden');
@@ -146,7 +142,6 @@ firebase.auth().onAuthStateChanged((user) => {
 
     userAvatar.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || user.email[0])}`;
     userName.textContent = user.displayName || user.email;
-
   } else {
     loginButton.classList.remove('hidden');
     userProfile.classList.add('hidden');
@@ -154,7 +149,7 @@ firebase.auth().onAuthStateChanged((user) => {
   }
 });
 
-// --- Submit form solo se loggato
+// Submit upload solo se loggato
 form.onsubmit = async (e) => {
   e.preventDefault();
 
@@ -163,32 +158,40 @@ form.onsubmit = async (e) => {
     return;
   }
 
-  resultBox.innerHTML = "<em class='text-indigo-200'>Analisi in corso... ⏳</em>";
+  resultBox.innerHTML = "";
+  spinner.classList.remove('hidden');
 
   const formData = new FormData(form);
-  const urlInput = urlInputField.value.trim();
+  const urlInput = document.getElementById('urlInput').value.trim();
   if (urlInput) formData.append("url", urlInput);
   formData.append("user", firebase.auth().currentUser.uid);
 
-  const res = await fetch("/process", {
-    method: "POST",
-    body: formData
-  });
+  try {
+    const res = await fetch("/process", {
+      method: "POST",
+      body: formData
+    });
 
-  if (!res.ok) {
-    resultBox.innerHTML = "";
-    const banner = document.createElement("div");
-    banner.className = "mt-8 p-5 rounded-2xl text-center max-w-xl mx-auto font-medium bg-red-600/20 text-red-300 border border-red-500";
-    banner.innerHTML = "❌ Errore durante l'elaborazione.";
-    resultBox.appendChild(banner);
-    return;
+    spinner.classList.add('hidden');
+
+    if (res.status === 429) {
+      resultBox.innerHTML = "⚠️ Limite di quiz giornaliero raggiunto. Torna tra 24 ore per poter generare nuovi quiz!";
+      return;
+    }
+    else if (!res.ok) {
+      resultBox.innerHTML = "❌ Errore durante l'elaborazione.";
+      return;
+    }
+
+    const quizData = await res.json();
+    renderQuiz(quizData);
+  } catch (error) {
+    spinner.classList.add('hidden');
+    resultBox.innerHTML = "❌ Errore di connessione.";
   }
-
-  const quizData = await res.json();
-  renderQuiz(quizData);
 };
 
-// --- Render quiz
+// Rendering Quiz
 function renderQuiz(data) {
   resultBox.innerHTML = "";
   data.forEach((item, index) => {
@@ -210,7 +213,7 @@ function renderQuiz(data) {
         input.type = "radio";
         input.name = `question-${index}`;
         input.value = opt;
-        input.className = "mr-2 accent-cyan-500";
+        input.className = "mr-2 accent-yellow-400";
 
         label.appendChild(input);
         label.append(` ${opt}`);
@@ -226,10 +229,10 @@ function renderQuiz(data) {
 
     resultBox.appendChild(container);
   });
-  validateBtn.classList.remove("hidden");
+  validateBtn.classList.remove('hidden');
 }
 
-// --- Validazione quiz
+// Validazione Risposte
 validateBtn.onclick = async () => {
   validateBtn.disabled = true;
   validateBtn.textContent = "Validazione in corso...";
@@ -237,9 +240,6 @@ validateBtn.onclick = async () => {
   const questions = [], answers = [];
 
   document.querySelectorAll(".quiz-question").forEach((questionEl, index) => {
-    const oldFeedback = questionEl.querySelector(".quiz-feedback");
-    if (oldFeedback) oldFeedback.remove();
-
     const qText = questionEl.querySelector("h3").textContent.replace(/^\d+\.\s*/, "");
     const type = questionEl.querySelector("textarea") ? "text" : "multiple";
 
