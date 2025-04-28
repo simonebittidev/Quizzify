@@ -1,12 +1,6 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Quizzify</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white font-sans">
+{% extends "base.html" %}
+
+{% block content %}
 
   <!-- Hero Section -->
   <section class="min-h-screen flex flex-col justify-center items-center text-center px-6">
@@ -46,10 +40,4 @@
     <a href="/play" class="bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-4 px-10 rounded-full text-lg shadow-lg transition-transform hover:scale-110">Try It Now!</a>
   </section>
 
-  <footer class="py-10 text-center text-indigo-300 text-sm">
-    <p>&copy; 2025 Quizzify. All rights reserved.</p>
-    <p class="mt-2">Made with <span class="text-yellow-400">♥</span> using TailwindCSS</p>
-  </footer>
-
-</body>
-</html>
+{% endblock %}

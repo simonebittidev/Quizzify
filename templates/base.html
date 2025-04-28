@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en"></html>
+<head>
+    <script type="text/javascript" src="//embeds.iubenda.com/widgets/85c0f5d4-bb10-4f89-bd1a-17f266ec7b05.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quizzify</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white flex flex-col items-center px-4 py-12">
+
+    {% block content %}
+    <!-- Contenuto specifico della pagina -->
+    {% endblock %}
+    
+    <footer class="mt-20 w-full border-t border-indigo-700 pt-8 pb-6 text-center text-indigo-300 text-sm">
+        <p>&copy; 2025 Quizzify.Me. All rights reserved.</p>
+        <p class="mt-1">Created with <span class="text-yellow-400">♥</span> using Tailwind CSS</p>
+        <a href="https://www.iubenda.com/privacy-policy/92711627" class="iubenda-white iubenda-noiframe iubenda-embed iubenda-noiframe " title="Privacy Policy ">Privacy Policy</a><script type="text/javascript">(function (w,d) {var loader = function () {var s = d.createElement("script"), tag = d.getElementsByTagName("script")[0]; s.src="https://cdn.iubenda.com/iubenda.js"; tag.parentNode.insertBefore(s,tag);}; if(w.addEventListener){w.addEventListener("load", loader, false);}else if(w.attachEvent){w.attachEvent("onload", loader);}else{w.onload = loader;}})(window, document);</script>
+        <a href="https://www.iubenda.com/privacy-policy/92711627/cookie-policy" class="iubenda-white iubenda-noiframe iubenda-embed iubenda-noiframe " title="Cookie Policy ">Cookie Policy</a><script type="text/javascript">(function (w,d) {var loader = function () {var s = d.createElement("script"), tag = d.getElementsByTagName("script")[0]; s.src="https://cdn.iubenda.com/iubenda.js"; tag.parentNode.insertBefore(s,tag);}; if(w.addEventListener){w.addEventListener("load", loader, false);}else if(w.attachEvent){w.attachEvent("onload", loader);}else{w.onload = loader;}})(window, document);</script>
+    </footer>
+<script src="{{url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
