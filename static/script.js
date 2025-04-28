@@ -14,85 +14,16 @@ const form = document.getElementById("uploadForm");
 const resultBox = document.getElementById("result");
 const validateBtn = document.getElementById("validateBtn");
 const spinner = document.getElementById("spinner");
-
 const loginButton = document.getElementById('loginToggle');
 const userProfile = document.getElementById('userProfile');
 const userMenuButton = document.getElementById('userMenuButton');
-const userDropdown = document.getElementById('userDropdown');
 const userAvatar = document.getElementById('userAvatar');
 const userName = document.getElementById('userName');
 const logoutButton = document.getElementById('logoutBtn');
-const changePasswordButton = document.getElementById('changePasswordBtn');
 const deleteAccountButton = document.getElementById('deleteAccountBtn');
-
-const loginModal = document.getElementById('loginModal');
-const closeModalBtn = document.getElementById('closeModalBtn');
-const loginForm = document.getElementById('loginForm');
-const resetPasswordBtn = document.getElementById('resetPasswordBtn');
-const googleLoginBtn = document.getElementById('googleLoginBtn');
-
-// Gestione visibilità modale login
-loginButton.addEventListener('click', () => {
-  loginModal.classList.remove('hidden');
-});
-
-closeModalBtn.addEventListener('click', () => {
-  loginModal.classList.add('hidden');
-});
 
 userMenuButton.addEventListener('click', () => {
   userDropdown.classList.toggle('hidden');
-});
-
-// Login Email/Password con registrazione automatica
-loginForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const email = document.getElementById('loginEmail').value.trim();
-  const password = document.getElementById('loginPassword').value;
-
-  try {
-    await firebase.auth().signInWithEmailAndPassword(email, password);
-    loginModal.classList.add('hidden');
-  } catch (error) {
-    if (error.code === 'auth/user-not-found') {
-      if (confirm('Nessun account trovato. Vuoi registrarti?')) {
-        try {
-          await firebase.auth().createUserWithEmailAndPassword(email, password);
-          alert('Registrazione completata! Ora sei loggato.');
-          loginModal.classList.add('hidden');
-        } catch (signupError) {
-          alert('Errore durante la registrazione: ' + signupError.message);
-        }
-      }
-    } else {
-      alert('Errore di login: ' + error.message);
-    }
-  }
-});
-
-// Login con Google
-googleLoginBtn.addEventListener('click', async () => {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  try {
-    await firebase.auth().signInWithPopup(provider);
-    loginModal.classList.add('hidden');
-  } catch (error) {
-    alert('Errore con Google Login: ' + error.message);
-  }
-});
-
-// Reset password
-resetPasswordBtn.addEventListener('click', () => {
-  const email = prompt('Inserisci la tua email per ricevere il reset password:');
-  if (email) {
-    firebase.auth().sendPasswordResetEmail(email)
-      .then(() => {
-        alert('Ti abbiamo inviato un\'email per resettare la password.');
-      })
-      .catch((error) => {
-        alert('Errore: ' + error.message);
-      });
-  }
 });
 
 // Logout
@@ -105,20 +36,6 @@ logoutButton.addEventListener('click', () => {
     .catch((error) => {
       alert('Errore nel logout: ' + error.message);
     });
-});
-
-// Cambia password
-changePasswordButton.addEventListener('click', () => {
-  const newPassword = prompt('Inserisci la nuova password:');
-  if (newPassword) {
-    firebase.auth().currentUser.updatePassword(newPassword)
-      .then(() => {
-        alert('Password aggiornata!');
-      })
-      .catch((error) => {
-        alert('Errore nel cambio password: ' + error.message);
-      });
-  }
 });
 
 // Cancellazione account

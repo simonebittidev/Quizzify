@@ -39,6 +39,18 @@ def index():
 def play():
     return render_template("index.html")
 
+@app.route("/login", methods=["GET"])
+def login():
+    return render_template("login.html")
+
+@app.route("/signup", methods=["GET"])
+def signup():
+    return render_template("signup.html")
+
+@app.route("/reset", methods=["GET"])
+def reset():
+    return render_template("reset.html")
+
 @app.route("/process", methods=["POST"])
 def process_files():
     if "user" in request.form:

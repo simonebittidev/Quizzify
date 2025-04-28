@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+</head>
+ <body class="min-h-screen bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white flex flex-col items-center px-4 py-12">
+    <div class="w-full max-w-md space-y-8">
+      <div class="flex flex-col items-center">
+        <h2 class="mt-6 text-center text-2xl font-bold tracking-tight">Sign in to your account</h2>
+      </div>
+
+      <form id="loginForm" class="mt-8 space-y-6 p-8">
+        <div class="rounded-md shadow-sm -space-y-px">
+          <div class="mb-4">
+            <label for="email" class="block text-sm font-medium">Email address</label>
+            <input id="loginEmail" placeholder="Email" name="email" type="email" autocomplete="email" required class="text-black appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+          </div>
+          <div>
+            <label for="password" class="block text-sm font-medium">Password</label>
+            <input id="loginPassword" placeholder="Password" name="password" type="password" autocomplete="current-password" required class="text-black appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-center">
+          <div class="text-sm">
+            <a href="/reset" class="font-medium ">Forgot password?</a>
+          </div>
+        </div>
+
+        <div>
+          <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-black bg-yellow-400 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">Sign in</button>
+        </div>
+
+        <div class="flex items-center my-4">
+          <div class="flex-grow border-t border-gray-300"></div>
+          <span class="mx-4 text-gray-400">Or continue with</span>
+          <div class="flex-grow border-t border-gray-300"></div>
+        </div>
+
+        <div class="flex space-x-4">
+          <button id="googleLoginBtn" type="button" class="flex items-center justify-center w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+            <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" class="h-5 w-5 mr-2"> Google
+          </button>
+        </div>
+      </form>
+
+      <p class="mt-6 text-center text-sm text-gray-400">
+        Not a member? <a href="/signup" class="font-medium text-yellow-400 hover:text-yellow-500">Sign up</a>
+      </p>
+    </div>
+
+    <script src="{{url_for('static', filename='login.js') }}"></script>
+</body>
+</html>

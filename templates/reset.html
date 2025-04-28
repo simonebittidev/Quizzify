@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white flex flex-col items-center px-4 py-12">
+  <div class="w-full max-w-md space-y-8">
+    <div class="flex flex-col items-center">
+      <h2 class="mt-6 text-center text-2xl font-bold tracking-tight">Reset your password</h2>
+    </div>
+
+    <form id="resetForm" class="mt-8 space-y-6 p-8">
+      <div class="rounded-md -space-y-px">
+        <div class="mb-4">
+          <label for="email" class="block text-sm font-medium ">Email address</label>
+          <input id="resetEmail" placeholder="Email" name="email" type="email" autocomplete="email" required class="text-black appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+        </div>
+      </div>
+
+      <div>
+        <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-black bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">Reset</button>
+      </div>
+    </form>
+
+    <p class="mt-6 text-center text-sm text-gray-600">
+      <a href="/login" class="font-medium text-white hover:text-gray-500">Go back</a>
+    </p>
+  </div>
+
+  <script src="{{url_for('static', filename='reset.js') }}"></script>
+</body>
+</html>

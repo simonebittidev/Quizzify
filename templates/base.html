@@ -1,13 +1,7 @@
 <!DOCTYPE html>
-<html lang="en"></html>
+<html lang="en">
 <head>
-    <script type="text/javascript">
-    var _iub = _iub || [];
-    _iub.csConfiguration = {"siteId":4010354,"cookiePolicyId":92711627,"lang":"it","storage":{"useSiteId":true}};
-    </script>
-    <script type="text/javascript" src="https://cs.iubenda.com/autoblocking/4010354.js"></script>
-    <script type="text/javascript" src="//cdn.iubenda.com/cs/gpp/stub.js"></script>
-    <script type="text/javascript" src="//cdn.iubenda.com/cs/iubenda_cs.js" charset="UTF-8" async></script>
+    <script type="text/javascript" src="//embeds.iubenda.com/widgets/85c0f5d4-bb10-4f89-bd1a-17f266ec7b05.js"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Quizzify</title>
@@ -22,11 +16,15 @@
     {% endblock %}
     
     <footer class="mt-20 w-full border-t border-indigo-700 pt-8 pb-6 text-center text-indigo-300 text-sm">
-        <p>&copy; 2025 Quizzify.Me. All rights reserved.</p>
-        <p class="mt-1">Created with <span class="text-yellow-400">♥</span> using Tailwind CSS</p>
+        <p>&copy; 2025 Quizzify All rights reserved.</p>
+        <p class="mt-1 mb-4">Created with <span class="text-yellow-400">♥</span> by Simone Bitti</p>
+
         <a href="https://www.iubenda.com/privacy-policy/92711627" class="iubenda-white iubenda-noiframe iubenda-embed iubenda-noiframe " title="Privacy Policy ">Privacy Policy</a><script type="text/javascript">(function (w,d) {var loader = function () {var s = d.createElement("script"), tag = d.getElementsByTagName("script")[0]; s.src="https://cdn.iubenda.com/iubenda.js"; tag.parentNode.insertBefore(s,tag);}; if(w.addEventListener){w.addEventListener("load", loader, false);}else if(w.attachEvent){w.attachEvent("onload", loader);}else{w.onload = loader;}})(window, document);</script>
         <a href="https://www.iubenda.com/privacy-policy/92711627/cookie-policy" class="iubenda-white iubenda-noiframe iubenda-embed iubenda-noiframe " title="Cookie Policy ">Cookie Policy</a><script type="text/javascript">(function (w,d) {var loader = function () {var s = d.createElement("script"), tag = d.getElementsByTagName("script")[0]; s.src="https://cdn.iubenda.com/iubenda.js"; tag.parentNode.insertBefore(s,tag);}; if(w.addEventListener){w.addEventListener("load", loader, false);}else if(w.attachEvent){w.attachEvent("onload", loader);}else{w.onload = loader;}})(window, document);</script>
     </footer>
-<script src="{{url_for('static', filename='script.js') }}"></script>
+
+    {% block scripts %}
+    <!-- scripts -->
+    {% endblock %}
 </body>
 </html>
