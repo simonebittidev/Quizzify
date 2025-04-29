@@ -31,6 +31,14 @@ USE_MOCK = int(os.environ['USE_MOCK']) == 1
 
 app = Flask(__name__)
 
+@app.route("/cookiepolicy", methods=["GET"])
+def cookiepolicy():
+    return render_template("cookie-policy.html")
+
+@app.route("/privacypolicy", methods=["GET"])
+def privacypolicy():
+    return render_template("privacy-policy.html")
+
 @app.route("/", methods=["GET"])
 def index():
     return render_template("landing.html")
