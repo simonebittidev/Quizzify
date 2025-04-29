@@ -21,6 +21,15 @@ const userAvatar = document.getElementById('userAvatar');
 const userName = document.getElementById('userName');
 const logoutButton = document.getElementById('logoutBtn');
 const deleteAccountButton = document.getElementById('deleteAccountBtn');
+const closeModal = document.getElementById('closeModal');
+const modal = document.getElementById('modal');
+
+// Optional: chiudi la modale cliccando fuori
+window.addEventListener('click', (e) => {
+  if (e.target == modal) {
+    modal.classList.add('hidden');
+  }
+});
 
 userMenuButton.addEventListener('click', () => {
   userDropdown.classList.toggle('hidden');
@@ -71,7 +80,7 @@ form.onsubmit = async (e) => {
   e.preventDefault();
 
   if (!firebase.auth().currentUser) {
-    loginModal.classList.remove('hidden');
+    modal.classList.remove('hidden');
     return;
   }
 
