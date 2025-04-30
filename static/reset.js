@@ -9,6 +9,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 const loginForm = document.getElementById('resetForm');
+const alertError = document.getElementById('alertError');
 
 loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -22,7 +23,7 @@ loginForm.addEventListener('submit', async (e) => {
         window.location.href = 'play';
       })
       .catch((error) => {
-        alert('Errore: ' + error.message);
+        alertError.classList.toggle('hidden');
       });
   }
 });

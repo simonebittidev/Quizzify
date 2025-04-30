@@ -23,6 +23,7 @@ const logoutButton = document.getElementById('logoutBtn');
 const deleteAccountButton = document.getElementById('deleteAccountBtn');
 const closeModal = document.getElementById('closeModal');
 const modal = document.getElementById('modal');
+const alertError = document.getElementById('alertError');
 
 // Optional: chiudi la modale cliccando fuori
 window.addEventListener('click', (e) => {
@@ -43,7 +44,7 @@ logoutButton.addEventListener('click', () => {
       userDropdown.classList.add('hidden');
     })
     .catch((error) => {
-      alert('Errore nel logout: ' + error.message);
+      alertError.classList.toggle('hidden');
     });
 });
 
@@ -55,7 +56,7 @@ deleteAccountButton.addEventListener('click', () => {
         alert('Account cancellato.');
       })
       .catch((error) => {
-        alert('Errore nella cancellazione: ' + error.message);
+        alertError.classList.toggle('hidden');
       });
   }
 });

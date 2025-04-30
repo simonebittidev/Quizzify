@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
-from backend.image_processing import process_file, create_quiz_from_text
+from utils.image_processing import process_file
+from utils.quizzies_helper import create_quiz_from_text
 from flask import Flask, request, jsonify, render_template
 from langchain_openai import AzureChatOpenAI
 from langchain.schema import SystemMessage, HumanMessage
@@ -15,19 +16,19 @@ import base64
 
 load_dotenv()
 
-print(os.environ['FIREBASE_SERVICE_ACCOUNT'])
-json_str = base64.b64decode(os.environ['FIREBASE_SERVICE_ACCOUNT']).decode('utf-8')
-service_account_info = json.loads(json_str)
+print(os.environ["QUIZ_LIMIT"])
+QUIZ_LIMIT = int(os.environ["QUIZ_LIMIT"])
+RESET_INTERVAL = int(os.environ["QUIZ_TIME_LIMIT"]) # 24 ore in secondi
+USE_MOCK = int(os.environ['USE_MOCK']) == 1
+MAX_TOTAL_FILE_SIZE = 5 * 1024 * 1024
 
-# Inizializza Firebase Admin
+firebase_account_json_str = base64.b64decode(os.environ['FIREBASE_SERVICE_ACCOUNT']).decode('utf-8')
+service_account_info = json.loads(firebase_account_json_str)
+
 if not firebase_admin._apps:
     cred = credentials.Certificate(service_account_info)
     firebase_admin.initialize_app(cred)
 db = firestore.client()
-
-QUIZ_LIMIT = int(os.environ["QUIZ_LIMIT"])
-RESET_INTERVAL = int(os.environ["QUIZ_TIME_LIMIT"]) # 24 ore in secondi
-USE_MOCK = int(os.environ['USE_MOCK']) == 1
 
 app = Flask(__name__)
 
@@ -147,8 +148,7 @@ def process_files():
         # Se ci sono file, processali
         if "files" in request.files:
             files = request.files.getlist("files")
-            MAX_TOTAL_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
-
+            
             total_size = sum(file.content_length or 0 for file in files)
             if total_size > MAX_TOTAL_FILE_SIZE:
                 return jsonify({"error": "Uploaded files exceed the maximum allowed size of 5 MB."}), 413
@@ -156,7 +156,7 @@ def process_files():
             full_text += process_file(files, USE_MOCK) 
 
         if not full_text.strip():
-            return jsonify({"error": "Nessun contenuto da processare."}), 400
+             jsonify({"error": "No content to process."}), 400
 
         try:
             quiz_data = create_quiz_from_text(full_text)
@@ -164,20 +164,20 @@ def process_files():
 
             return jsonify(quiz_data)
         except Exception as e:
-            return jsonify({"error": f"Errore durante la generazione del quiz: {str(e)}"}), 500
+             jsonify({"error": f"Error during quiz generation: {str(e)}"}), 500
 
 @app.route("/validate", methods=["POST"])
 def validate_quiz():
     data = request.get_json()
 
     if not data or "questions" not in data or "answers" not in data:
-        return jsonify({"error": "Richiesta non valida. Serve 'questions' e 'answers'."}), 400
+         jsonify({"error": "Invalid request. 'questions' and 'answers' are required."}), 400
 
     try:
         result = validate_answers(data["questions"], data["answers"])
         return jsonify({"feedback": result})
     except Exception as e:
-        return jsonify({"error": f"Errore durante la valutazione: {str(e)}"}), 500
+        return jsonify({"error": f"Error during quiz generation: {str(e)}"}), 500
 
 def validate_answers(questions, answers, validateWithLLM=False):
     if not validateWithLLM:
@@ -191,7 +191,7 @@ def validate_answers(questions, answers, validateWithLLM=False):
                 "user_answer": answers[i],
                 "correct_answer": q.get("answer", ""),
                 "correct": is_correct,
-                "feedback": "Corretto!" if is_correct else "Risposta errata."
+                "feedback": "Correct!" if is_correct else "Wrong answer."
             })
         return feedback
 

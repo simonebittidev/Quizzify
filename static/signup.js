@@ -11,6 +11,7 @@ firebase.initializeApp(firebaseConfig);
 const loginButton = document.getElementById('loginToggle');
 const loginForm = document.getElementById('loginForm');
 const googleLoginBtn = document.getElementById('googleLoginBtn');
+const alertError = document.getElementById('alertError');
 
 loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -21,7 +22,7 @@ loginForm.addEventListener('submit', async (e) => {
     await firebase.auth().createUserWithEmailAndPassword(email, password);
     window.location.href = 'play';
   } catch (signupError) {
-    alert('Errore durante la registrazione: ' + signupError.message);
+    alertError.classList.toggle('hidden');
   }
 });
 
@@ -31,6 +32,6 @@ googleLoginBtn.addEventListener('click', async () => {
     await firebase.auth().signInWithPopup(provider);
     window.location.href = 'play';
   } catch (error) {
-    alert('Errore con Google Login: ' + error.message);
+    alertError.classList.toggle('hidden');
   }
 });
